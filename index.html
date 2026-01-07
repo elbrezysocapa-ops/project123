@@ -89,7 +89,9 @@
 
 function connect() {
   const appId = el("appId").value.trim();
-  const user = el("username").value.trim() || "WebUser_" + Date.now();
+  const user =
+    el("username").value.trim() ||
+    "WebUser_" + Date.now();
 
   client = new Photon.Chat.ChatClient(
     Photon.ConnectionProtocol.Wss,
@@ -97,6 +99,7 @@ function connect() {
     APP_VERSION
   );
 
+  // Debug correto (opcional)
   client.debugOutputLevel = Photon.LogLevel.INFO;
 
   client.onChatStateChange = state => {
@@ -114,14 +117,14 @@ function connect() {
     addMsg(`<b>${sender}:</b> ${escapeHtml(String(message))}`);
   };
 
+  client.onError = (code, msg) => {
+    addMsg(`Erro [${code}]: ${msg}`, true);
+  };
+
   setStatus("Conectando ao Photon Chat…");
 
-  client.connectToRegionFrontEnd(REGION, user);
-
-  // 🔥 LOOP DE SERVIÇO (ESSENCIAL)
-  setInterval(() => {
-    if (client) client.service();
-  }, 50);
+  // ✅ ÚNICA FORMA CORRETA NO CHAT JS
+  client.connect(appId, APP_VERSION, user);
 }
 
 
