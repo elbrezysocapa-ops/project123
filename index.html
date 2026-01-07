@@ -71,8 +71,8 @@
         return;
       }
 
-      // Instancia o cliente de Chat
-      client = new Photon.Chat.ChatClient(Photon.ConnectionProtocol.Ws, appId, APP_VERSION);
+      // Instancia o cliente de Chat usando WSS (seguro)
+      client = new Photon.Chat.ChatClient(Photon.ConnectionProtocol.Wss, appId, APP_VERSION);
       client.setUserId(user);
 
       // Callbacks principais
