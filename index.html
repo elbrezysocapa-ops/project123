@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+ remembering>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Photon Chat Web</title>
 
-  <!-- SDK Photon Chat -->
+  <!-- SDK Photon Chat JS 4.4.x -->
   <script src="js/photon.min.js"></script>
 
   <style>
@@ -68,7 +69,8 @@
   <h1>Photon Chat Web – GlobalChat</h1>
 
   <div class="row">
-    <input id="appId" placeholder="AppID do Photon Chat" value="c232cfbf-d1d0-435a-b5a9-afc32d97a4ef" />
+    <input id="appId" placeholder="AppID do Photon Chat"
+           value="c232cfbf-d1d0-435a-b5a9-afc32d97a4ef" />
     <input id="username" placeholder="Seu nome (ex.: Rodolfo)" />
     <button id="connectBtn">Conectar</button>
   </div>
@@ -86,17 +88,21 @@
 </div>
 
 <script>
-  // Configurações
+  /* =======================
+     CONFIGURAÇÕES
+     ======================= */
   const CHANNEL = "GlobalChat";
-  const REGION = "us"; // teste também "eu" se quiser
+  const REGION = "us"; // se precisar, teste "eu"
   const APP_VERSION = "1.0";
 
   let client = null;
 
-  // Helpers
+  /* =======================
+     HELPERS
+     ======================= */
   const el = id => document.getElementById(id);
 
-  function status(text) {
+  function setStatus(text) {
     el("status").textContent = text;
   }
 
@@ -115,7 +121,9 @@
       .replace(/>/g, "&gt;");
   }
 
-  // Conectar
+  /* =======================
+     CONEXÃO
+     ======================= */
   function connect() {
     const appId = el("appId").value.trim();
     const user =
@@ -133,17 +141,20 @@
       APP_VERSION
     );
 
-    // DEBUG
-    client.logger = console;
-    client.debugOutputLevel = Photon.DebugLevel.ALL;
-
-    // AuthenticationValues (ESSENCIAL)
+    // AuthenticationValues (OBRIGATÓRIO NO JS)
     const authValues = new Photon.Chat.AuthenticationValues(user);
 
-    // Callbacks
+    // DEBUG (compatível com Photon JS 4.4)
+    client.logger = console;
+    client.debugOutputLevel = Photon.LogLevel.DEBUG;
+
+    /* =======================
+       CALLBACKS
+       ======================= */
+
     client.onChatStateChange = function (state) {
       console.log("CHAT STATE:", state);
-      status("Estado: " + Photon.Chat.ChatClient.State[state]);
+      setStatus("Estado: " + Photon.Chat.ChatClient.State[state]);
 
       if (state === Photon.Chat.ChatClient.State.ConnectedToFrontEnd) {
         client.subscribe([CHANNEL]);
@@ -177,11 +188,13 @@
       addMsg(`<i>${userId} saiu do canal.</i>`, true);
     };
 
-    status("Conectando ao Photon Chat…");
+    setStatus("Conectando ao Photon Chat…");
     client.connectToRegionFrontEnd(REGION, authValues);
   }
 
-  // Enviar mensagem
+  /* =======================
+     MENSAGENS
+     ======================= */
   function sendMessage() {
     const msg = el("msgBox").value.trim();
     if (!msg || !client) return;
@@ -190,7 +203,9 @@
     el("msgBox").value = "";
   }
 
-  // Eventos
+  /* =======================
+     EVENTOS
+     ======================= */
   el("connectBtn").addEventListener("click", connect);
   el("sendBtn").addEventListener("click", sendMessage);
   el("msgBox").addEventListener("keydown", e => {
