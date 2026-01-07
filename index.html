@@ -4,7 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Photon Chat Web</title>
-  <script src="https://cdn.jsdelivr.net/npm/photon-javascript-sdk@4.1.6/dist/photon.min.js"></script>
+  <!-- SDK Photon local -->
+  <script src="js/photon.min.js"></script>
   <style>
     body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 24px; }
     .card { max-width: 800px; margin: 0 auto; border: 1px solid #ddd; border-radius: 8px; padding: 16px; }
@@ -76,7 +77,6 @@
 
       // Callbacks principais
       client.onStateChange = function (state) {
-        // Estados possíveis: ConnectingToNameServer, ConnectedToNameServer, ConnectingToFrontEnd, ConnectedToFrontEnd, Disconnected, etc.
         status("Estado: " + state);
         if (state === Photon.Chat.ChatClient.State.ConnectedToFrontEnd) {
           client.subscribe([CHANNEL]);
@@ -94,7 +94,6 @@
       };
 
       client.onSubscribeResult = function (result) {
-        // result: { channel: string, result: boolean }
         if (result && result.result) {
           addMsg("Assinado com sucesso o canal <b>" + result.channel + "</b>.", true);
         } else {
@@ -110,7 +109,7 @@
         addMsg("<i>" + userId + " saiu do canal.</i>", true);
       };
 
-      // Conecta na região escolhida (NameServer -> FrontEnd)
+      // Conecta na região escolhida
       status("Conectando ao Photon Chat…");
       client.connectToRegionFrontEnd(REGION);
     }
@@ -123,7 +122,7 @@
       el("msgBox").value = "";
     }
 
-    // Pequeno utilitário de escape
+    // Escape HTML
     function escapeHtml(str) {
       return str
         .replace(/&/g, "&amp;")
