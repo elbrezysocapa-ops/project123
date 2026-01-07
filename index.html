@@ -109,9 +109,9 @@
         addMsg("<i>" + userId + " saiu do canal.</i>", true);
       };
 
-      // Conecta na região escolhida
+      // Conecta na região escolhida via Master (fluxo correto)
       status("Conectando ao Photon Chat…");
-      client.connectToRegionFrontEnd(REGION);
+      client.connectToRegionMaster(REGION);
     }
 
     // Enviar mensagem
