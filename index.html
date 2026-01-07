@@ -87,7 +87,7 @@
     return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
   }
 
- function connect() {
+function connect() {
   const appId = el("appId").value.trim();
   const user = el("username").value.trim() || "WebUser_" + Date.now();
 
@@ -97,10 +97,6 @@
     APP_VERSION
   );
 
-  // ⚠️ NÃO use console como logger
-  // client.logger = console; ❌
-
-  // Debug seguro (opcional)
   client.debugOutputLevel = Photon.LogLevel.INFO;
 
   client.onChatStateChange = state => {
@@ -120,9 +116,14 @@
 
   setStatus("Conectando ao Photon Chat…");
 
-  // ✔ FORMA CORRETA NO JS 4.4
   client.connectToRegionFrontEnd(REGION, user);
+
+  // 🔥 LOOP DE SERVIÇO (ESSENCIAL)
+  setInterval(() => {
+    if (client) client.service();
+  }, 50);
 }
+
 
   function sendMessage() {
     const msg = el("msgBox").value.trim();
