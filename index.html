@@ -1,12 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
- remembering>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Photon Chat Web</title>
 
-  <!-- SDK Photon Chat JS 4.4.x -->
+  <!-- Photon Chat JS SDK 4.4.x -->
   <script src="js/photon.min.js"></script>
 
   <style>
@@ -23,22 +22,10 @@
       padding: 16px;
       background: #fff;
     }
-    h1 {
-      font-size: 20px;
-      margin-bottom: 12px;
-    }
-    .row {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-    input, button {
-      padding: 10px;
-      font-size: 14px;
-    }
-    input {
-      flex: 1;
-    }
+    h1 { font-size: 20px; margin-bottom: 12px; }
+    .row { display: flex; gap: 8px; margin-bottom: 12px; }
+    input, button { padding: 10px; font-size: 14px; }
+    input { flex: 1; }
     #messages {
       height: 320px;
       border: 1px solid #ccc;
@@ -47,20 +34,10 @@
       overflow-y: auto;
       background: #fafafa;
     }
-    .msg {
-      margin: 6px 0;
-    }
-    .sys {
-      color: #666;
-      font-style: italic;
-    }
-    #chatArea {
-      display: none;
-    }
-    #status {
-      margin: 8px 0;
-      color: #444;
-    }
+    .msg { margin: 6px 0; }
+    .sys { color: #666; font-style: italic; }
+    #chatArea { display: none; }
+    #status { margin: 8px 0; color: #444; }
   </style>
 </head>
 <body>
@@ -69,9 +46,8 @@
   <h1>Photon Chat Web – GlobalChat</h1>
 
   <div class="row">
-    <input id="appId" placeholder="AppID do Photon Chat"
-           value="c232cfbf-d1d0-435a-b5a9-afc32d97a4ef" />
-    <input id="username" placeholder="Seu nome (ex.: Rodolfo)" />
+    <input id="appId" value="c232cfbf-d1d0-435a-b5a9-afc32d97a4ef" />
+    <input id="username" placeholder="Seu nome" />
     <button id="connectBtn">Conectar</button>
   </div>
 
@@ -79,7 +55,6 @@
 
   <div id="chatArea">
     <div id="messages"></div>
-
     <div class="row" style="margin-top:12px;">
       <input id="msgBox" placeholder="Digite sua mensagem" />
       <button id="sendBtn">Enviar</button>
@@ -88,52 +63,33 @@
 </div>
 
 <script>
-  /* =======================
-     CONFIGURAÇÕES
-     ======================= */
   const CHANNEL = "GlobalChat";
-  const REGION = "us"; // se precisar, teste "eu"
+  const REGION = "us";
   const APP_VERSION = "1.0";
 
   let client = null;
 
-  /* =======================
-     HELPERS
-     ======================= */
   const el = id => document.getElementById(id);
 
-  function setStatus(text) {
-    el("status").textContent = text;
+  function setStatus(t) {
+    el("status").textContent = t;
   }
 
-  function addMsg(html, isSystem = false) {
+  function addMsg(html, sys = false) {
     const p = document.createElement("p");
-    p.className = "msg" + (isSystem ? " sys" : "");
+    p.className = "msg" + (sys ? " sys" : "");
     p.innerHTML = html;
     el("messages").appendChild(p);
     el("messages").scrollTop = el("messages").scrollHeight;
   }
 
-  function escapeHtml(str) {
-    return str
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
+  function escapeHtml(s) {
+    return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
   }
 
-  /* =======================
-     CONEXÃO
-     ======================= */
   function connect() {
     const appId = el("appId").value.trim();
-    const user =
-      el("username").value.trim() ||
-      "WebUser_" + Date.now();
-
-    if (!appId) {
-      alert("Informe o AppID do Photon Chat.");
-      return;
-    }
+    const user = el("username").value.trim() || "WebUser_" + Date.now();
 
     client = new Photon.Chat.ChatClient(
       Photon.ConnectionProtocol.Wss,
@@ -141,19 +97,12 @@
       APP_VERSION
     );
 
-    // AuthenticationValues (OBRIGATÓRIO NO JS)
-    const authValues = new Photon.Chat.AuthenticationValues(user);
-
-    // DEBUG (compatível com Photon JS 4.4)
+    // Debug correto
     client.logger = console;
     client.debugOutputLevel = Photon.LogLevel.DEBUG;
 
-    /* =======================
-       CALLBACKS
-       ======================= */
-
-    client.onChatStateChange = function (state) {
-      console.log("CHAT STATE:", state);
+    client.onChatStateChange = state => {
+      console.log("STATE:", state);
       setStatus("Estado: " + Photon.Chat.ChatClient.State[state]);
 
       if (state === Photon.Chat.ChatClient.State.ConnectedToFrontEnd) {
@@ -163,49 +112,30 @@
       }
     };
 
-    client.onMessage = function (channel, sender, message) {
+    client.onMessage = (channel, sender, message) => {
       addMsg(`<b>${sender}:</b> ${escapeHtml(String(message))}`);
     };
 
-    client.onSubscribeResult = function (result) {
-      if (result && result.result) {
-        addMsg(`Canal <b>${result.channel}</b> assinado com sucesso.`, true);
-      } else {
-        addMsg("Falha ao assinar canal.", true);
-      }
+    client.onSubscribeResult = r => {
+      if (r && r.result)
+        addMsg(`Canal <b>${r.channel}</b> assinado.`, true);
     };
 
-    client.onError = function (code, msg) {
-      console.error("Photon Error:", code, msg);
-      addMsg(`Erro [${code}]: ${msg}`, true);
-    };
-
-    client.onUserSubscribe = function (channel, userId) {
-      addMsg(`<i>${userId} entrou no canal.</i>`, true);
-    };
-
-    client.onUserUnsubscribe = function (channel, userId) {
-      addMsg(`<i>${userId} saiu do canal.</i>`, true);
+    client.onError = (c, m) => {
+      addMsg(`Erro [${c}]: ${m}`, true);
     };
 
     setStatus("Conectando ao Photon Chat…");
-    client.connectToRegionFrontEnd(REGION, authValues);
+    client.connectToRegionFrontEnd(REGION, user);
   }
 
-  /* =======================
-     MENSAGENS
-     ======================= */
   function sendMessage() {
     const msg = el("msgBox").value.trim();
-    if (!msg || !client) return;
-
+    if (!msg) return;
     client.publishMessage(CHANNEL, msg);
     el("msgBox").value = "";
   }
 
-  /* =======================
-     EVENTOS
-     ======================= */
   el("connectBtn").addEventListener("click", connect);
   el("sendBtn").addEventListener("click", sendMessage);
   el("msgBox").addEventListener("keydown", e => {
