@@ -87,47 +87,42 @@
     return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
   }
 
-  function connect() {
-    const appId = el("appId").value.trim();
-    const user = el("username").value.trim() || "WebUser_" + Date.now();
+ function connect() {
+  const appId = el("appId").value.trim();
+  const user = el("username").value.trim() || "WebUser_" + Date.now();
 
-    client = new Photon.Chat.ChatClient(
-      Photon.ConnectionProtocol.Wss,
-      appId,
-      APP_VERSION
-    );
+  client = new Photon.Chat.ChatClient(
+    Photon.ConnectionProtocol.Wss,
+    appId,
+    APP_VERSION
+  );
 
-    // Debug correto
-    client.logger = console;
-    client.debugOutputLevel = Photon.LogLevel.DEBUG;
+  // ⚠️ NÃO use console como logger
+  // client.logger = console; ❌
 
-    client.onChatStateChange = state => {
-      console.log("STATE:", state);
-      setStatus("Estado: " + Photon.Chat.ChatClient.State[state]);
+  // Debug seguro (opcional)
+  client.debugOutputLevel = Photon.LogLevel.INFO;
 
-      if (state === Photon.Chat.ChatClient.State.ConnectedToFrontEnd) {
-        client.subscribe([CHANNEL]);
-        el("chatArea").style.display = "block";
-        addMsg(`Conectado como <b>${user}</b>.`, true);
-      }
-    };
+  client.onChatStateChange = state => {
+    console.log("STATE:", Photon.Chat.ChatClient.State[state]);
+    setStatus("Estado: " + Photon.Chat.ChatClient.State[state]);
 
-    client.onMessage = (channel, sender, message) => {
-      addMsg(`<b>${sender}:</b> ${escapeHtml(String(message))}`);
-    };
+    if (state === Photon.Chat.ChatClient.State.ConnectedToFrontEnd) {
+      client.subscribe([CHANNEL]);
+      el("chatArea").style.display = "block";
+      addMsg(`Conectado como <b>${user}</b>.`, true);
+    }
+  };
 
-    client.onSubscribeResult = r => {
-      if (r && r.result)
-        addMsg(`Canal <b>${r.channel}</b> assinado.`, true);
-    };
+  client.onMessage = (channel, sender, message) => {
+    addMsg(`<b>${sender}:</b> ${escapeHtml(String(message))}`);
+  };
 
-    client.onError = (c, m) => {
-      addMsg(`Erro [${c}]: ${m}`, true);
-    };
+  setStatus("Conectando ao Photon Chat…");
 
-    setStatus("Conectando ao Photon Chat…");
-    client.connectToRegionFrontEnd(REGION, user);
-  }
+  // ✔ FORMA CORRETA NO JS 4.4
+  client.connectToRegionFrontEnd(REGION, user);
+}
 
   function sendMessage() {
     const msg = el("msgBox").value.trim();
